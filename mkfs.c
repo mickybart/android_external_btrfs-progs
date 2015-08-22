@@ -25,7 +25,12 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#ifndef ANDROID
 #include <sys/dir.h>
+#else
+#include <dirent.h>
+#define direct dirent
+#endif
 #include <fcntl.h>
 #include <unistd.h>
 #include <getopt.h>
@@ -1107,6 +1112,9 @@ static int is_ssd(const char *file)
 	int fd;
 	char rotational;
 	int ret;
+
+	if (PLATFORM_ANDROID)
+		return 1;
 
 	probe = blkid_new_probe_from_filename(file);
 	if (!probe)

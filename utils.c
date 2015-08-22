@@ -801,6 +801,9 @@ static void btrfs_wipe_existing_sb(int fd)
 	int rc = 0;
 	blkid_probe pr = NULL;
 
+	if (PLATFORM_ANDROID)
+		return;
+
 	pr = blkid_new_probe();
 	if (!pr)
 		return;
@@ -2263,11 +2266,13 @@ check_overwrite(
 	int		ret;
 	blkid_loff_t	size;
 
+	if (PLATFORM_ANDROID)
+		return 1;
+
 	if (!device || !*device)
 		return 0;
 
 	ret = -1; /* will reset on success of all setup calls */
-
 	pr = blkid_new_probe_from_filename(device);
 	if (!pr)
 		goto out;

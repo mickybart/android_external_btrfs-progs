@@ -25,7 +25,11 @@
 #include <pthread.h>
 #include <math.h>
 #include <ftw.h>
+#ifndef ANDROID
 #include <wait.h>
+#else
+#include <sys/wait.h>
+#endif
 #include <assert.h>
 #include <getopt.h>
 

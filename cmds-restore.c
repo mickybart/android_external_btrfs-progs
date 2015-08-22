@@ -86,6 +86,7 @@ static int decompress_zlib(char *inbuf, char *outbuf, u64 compress_len,
 	(void)inflateEnd(&strm);
 	return 0;
 }
+
 static inline size_t read_compress_length(unsigned char *buf)
 {
 	__le32 dlen;

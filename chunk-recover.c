@@ -17,7 +17,9 @@
  */
 
 #include <stdio.h>
+#ifndef ANDROID
 #include <stdio_ext.h>
+#endif
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -755,9 +757,11 @@ static int scan_one_device(void *dev_scan_struct)
 	int fd = dev_scan->fd;
 	int oldtype;
 
+#ifndef ANDROID
 	ret = pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, &oldtype);
 	if (ret)
 		return 1;
+#endif
 
 	buf = malloc(sizeof(*buf) + rc->leafsize);
 	if (!buf)
@@ -884,7 +888,11 @@ static int scan_devices(struct recover_control *rc)
 	}
 out1:
 	while (ret && (cancel_from <= cancel_to)) {
+#ifdef ANDROID
+		pthread_kill(t_scans[cancel_from], SIGUSR1);
+#else
 		pthread_cancel(t_scans[cancel_from]);
+#endif
 		cancel_from++;
 	}
 out2:

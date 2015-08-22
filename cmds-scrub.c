@@ -780,12 +780,13 @@ static int scrub_write_progress(pthread_mutex_t *m, const char *fsid,
 	int fd = -1;
 	int old;
 
+#ifndef ANDROID
 	ret = pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &old);
 	if (ret) {
 		err = -ret;
 		goto out3;
 	}
-
+#endif
 	ret = pthread_mutex_lock(m);
 	if (ret) {
 		err = -ret;
@@ -816,10 +817,11 @@ out1:
 		err = -ret;
 
 out2:
+#ifndef ANDROID
 	ret = pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, &old);
 	if (ret && !err)
 		err = -ret;
-
+#endif
 out3:
 	return err;
 }
@@ -898,9 +900,11 @@ static void *scrub_progress_cycle(void *ctx)
 	struct sockaddr_un peer;
 	socklen_t peer_size = sizeof(peer);
 
+#ifndef ANDROID
 	perr = pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, &old);
 	if (perr)
 		goto out;
+#endif
 
 	uuid_unparse(spc->fi->fsid, fsid);
 
@@ -952,10 +956,12 @@ static void *scrub_progress_cycle(void *ctx)
 			 * result we got for the current write and go
 			 * on. flag should be set on next cycle, then.
 			 */
+#ifndef ANDROID
 			perr = pthread_setcancelstate(
 					PTHREAD_CANCEL_DISABLE, &old);
 			if (perr)
 				goto out;
+#endif
 			perr = pthread_mutex_lock(&sp_shared->progress_mutex);
 			if (perr)
 				goto out;
@@ -964,20 +970,24 @@ static void *scrub_progress_cycle(void *ctx)
 						&sp_shared->progress_mutex);
 				if (perr)
 					goto out;
+#ifndef ANDROID
 				perr = pthread_setcancelstate(
 						PTHREAD_CANCEL_ENABLE, &old);
 				if (perr)
 					goto out;
+#endif
 				memcpy(sp, sp_last, sizeof(*sp));
 				continue;
 			}
 			perr = pthread_mutex_unlock(&sp_shared->progress_mutex);
 			if (perr)
 				goto out;
+#ifndef ANDROID
 			perr = pthread_setcancelstate(
 					PTHREAD_CANCEL_ENABLE, &old);
 			if (perr)
 				goto out;
+#endif
 			memcpy(sp, sp_shared, sizeof(*sp));
 			memcpy(sp_last, sp_shared, sizeof(*sp));
 		}
@@ -1506,7 +1516,11 @@ static int scrub_start(int argc, char **argv, int resume)
 		}
 	}
 
+#ifdef ANDROID
+	ret = pthread_kill(t_prog, SIGUSR1);
+#else
 	ret = pthread_cancel(t_prog);
+#endif
 	if (!ret)
 		ret = pthread_join(t_prog, &terr);
 
@@ -1517,7 +1531,11 @@ static int scrub_start(int argc, char **argv, int resume)
 	}
 
 	/* check for errors returned from the progress thread itself */
+#ifdef ANDROID
+	if (do_print && terr) {
+#else
 	if (do_print && terr && terr != PTHREAD_CANCELED) {
+#endif
 		fprintf(stderr, "ERROR: recording progress "
 			"failed: %s\n", strerror(-PTR_ERR(terr)));
 	}

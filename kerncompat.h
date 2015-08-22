@@ -134,6 +134,9 @@ typedef long long s64;
 typedef int s32;
 #endif
 
+#ifdef ANDROID
+typedef struct blkid_struct_probe *blkid_probe;
+#endif
 
 struct vma_shared { int prio_tree_node; };
 struct vm_area_struct {
