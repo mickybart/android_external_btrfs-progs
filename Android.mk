@@ -3,6 +3,7 @@ LOCAL_PATH:= $(call my-dir)
 #include $(call all-subdir-makefiles)
 
 CFLAGS := -g -O1 -Wall -D_FORTIFY_SOURCE=2 -include config.h -DBTRFS_FLAT_INCLUDES -D_XOPEN_SOURCE=700 -fno-strict-aliasing -fPIC -DPLATFORM_ANDROID=1
+#CFLAGS := -g -O1 -Wall -D_FORTIFY_SOURCE=2 -DBTRFS_FLAT_INCLUDES -D_XOPEN_SOURCE=700 -fno-strict-aliasing -fPIC -DPLATFORM_ANDROID=1
 
 LDFLAGS := -static -rdynamic
 
@@ -38,7 +39,7 @@ blkid_objects := partition/ superblocks/ topology/
 
 
 # external/e2fsprogs/lib is needed for uuid/uuid.h
-common_C_INCLUDES := $(LOCAL_PATH) external/e2fsprogs/lib/ external/lzo/include/ external/zlib/
+common_C_INCLUDES := $(LOCAL_PATH) external/e2fsprogs/lib/ external/liblzo/include/ external/zlib/
 
 #----------------------------------------------------------
 include $(CLEAR_VARS)

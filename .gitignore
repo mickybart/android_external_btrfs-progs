@@ -3,7 +3,6 @@
 *.o.d
 tags
 .cc-defines.h
-version.h
 version
 man/*.gz
 Documentation/*.gz
@@ -48,7 +47,6 @@ autom4te.cache
 compile
 config.cache
 config.guess
-config.h
 config.h.in
 config.h.in~
 config.log
