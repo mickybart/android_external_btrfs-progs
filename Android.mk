@@ -3,7 +3,6 @@ LOCAL_PATH:= $(call my-dir)
 #include $(call all-subdir-makefiles)
 
 CFLAGS := -g -O1 -Wall -D_FORTIFY_SOURCE=2 -include config.h -DBTRFS_FLAT_INCLUDES -D_XOPEN_SOURCE=700 -fno-strict-aliasing -fPIC -DPLATFORM_ANDROID=1
-#CFLAGS := -g -O1 -Wall -D_FORTIFY_SOURCE=2 -DBTRFS_FLAT_INCLUDES -D_XOPEN_SOURCE=700 -fno-strict-aliasing -fPIC -DPLATFORM_ANDROID=1
 
 LDFLAGS := -static -rdynamic
 
