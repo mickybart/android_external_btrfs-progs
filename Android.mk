@@ -4,18 +4,12 @@ LOCAL_PATH:= $(call my-dir)
 
 CFLAGS := -g -O1 -Wall -D_FORTIFY_SOURCE=2 -include config.h -DBTRFS_FLAT_INCLUDES -D_XOPEN_SOURCE=700 -fno-strict-aliasing -fPIC -DPLATFORM_ANDROID=1
 
-LDFLAGS := -static -rdynamic
-
-LIBS := -luuid   -lblkid   -lz   -llzo2 -L. -lpthread
-LIBBTRFS_LIBS := $(LIBS)
-
 STATIC_CFLAGS := $(CFLAGS) -ffunction-sections -fdata-sections
-STATIC_LDFLAGS := -static -Wl,--gc-sections
-STATIC_LIBS := -luuid   -lblkid -luuid \
-              -lz   -llzo2 -L. -pthread
 
-btrfs_shared_libraries := libext2_uuid \
-			libext2_blkid
+btrfs_shared_libraries := libext2_uuid libext2_blkid
+
+btrfs_static_libraries := libext2_uuid_static libext2_blkid
+btrfs_system_static_libraries := libc libcutils
 
 objects := ctree.c disk-io.c radix-tree.c extent-tree.c print-tree.c \
           root-tree.c dir-item.c file-item.c inode-item.c inode-map.c \
@@ -51,42 +45,55 @@ include $(BUILD_STATIC_LIBRARY)
 #----------------------------------------------------------
 include $(CLEAR_VARS)
 LOCAL_MODULE := btrfs
-#LOCAL_FORCE_STATIC_EXECUTABLE := true
+
+# btrfs is used in recovery: must be static.
+LOCAL_FORCE_STATIC_EXECUTABLE := true
+
+# Recovery needs it also, so it must go into root/sbin/.
+# Directly generating into the recovery/root/sbin gets clobbered
+# when the recovery image is being made.
+# LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
+LOCAL_MODULE_PATH := $(TARGET_ROOT_OUT_SBIN)
+
 LOCAL_SRC_FILES := \
 		$(objects) \
 		$(cmds_objects) \
+		$(libbtrfs_objects) \
 		btrfs.c \
-		help.c \
+		help.c
 
 LOCAL_C_INCLUDES := $(common_C_INCLUDES)
 LOCAL_CFLAGS := $(STATIC_CFLAGS)
-#LOCAL_LDLIBS := $(LIBBTRFS_LIBS)
-#LOCAL_LDFLAGS := $(STATIC_LDFLAGS)
-LOCAL_SHARED_LIBRARIES := $(btrfs_shared_libraries)
-LOCAL_STATIC_LIBRARIES := libbtrfs liblzo-static libz
-LOCAL_SYSTEM_SHARED_LIBRARIES := libc libcutils
+LOCAL_STATIC_LIBRARIES := $(btrfs_static_libraries) liblzo-static libz $(btrfs_system_static_libraries)
 
 LOCAL_EXPORT_C_INCLUDES := $(common_C_INCLUDES)
-#LOCAL_MODULE_TAGS := optional
+LOCAL_MODULE_TAGS := optional
 include $(BUILD_EXECUTABLE)
 
 #----------------------------------------------------------
 include $(CLEAR_VARS)
 LOCAL_MODULE := mkfs.btrfs
+
+# mkfs.btrfs is used in recovery: must be static.
+LOCAL_FORCE_STATIC_EXECUTABLE := true
+
+# Recovery needs it also, so it must go into root/sbin/.
+# Directly generating into the recovery/root/sbin gets clobbered
+# when the recovery image is being made.
+# LOCAL_MODULE_PATH := $(TARGET_RECOVERY_ROOT_OUT)/sbin
+LOCAL_MODULE_PATH := $(TARGET_ROOT_OUT_SBIN)
+
 LOCAL_SRC_FILES := \
                 $(objects) \
+		$(libbtrfs_objects) \
                 mkfs.c
 
 LOCAL_C_INCLUDES := $(common_C_INCLUDES)
 LOCAL_CFLAGS := $(STATIC_CFLAGS)
-#LOCAL_LDLIBS := $(LIBBTRFS_LIBS)
-#LOCAL_LDFLAGS := $(STATIC_LDFLAGS)
-LOCAL_SHARED_LIBRARIES := $(btrfs_shared_libraries)
-LOCAL_STATIC_LIBRARIES := libbtrfs liblzo-static
-LOCAL_SYSTEM_SHARED_LIBRARIES := libc libcutils
+LOCAL_STATIC_LIBRARIES := $(btrfs_static_libraries) liblzo-static $(btrfs_system_static_libraries)
 
 LOCAL_EXPORT_C_INCLUDES := $(common_C_INCLUDES)
-#LOCAL_MODULE_TAGS := optional
+LOCAL_MODULE_TAGS := optional
 include $(BUILD_EXECUTABLE)
 
 #---------------------------------------------------------------
@@ -98,9 +105,6 @@ LOCAL_SRC_FILES := \
 
 LOCAL_C_INCLUDES := $(common_C_INCLUDES)
 LOCAL_CFLAGS := $(STATIC_CFLAGS)
-LOCAL_SHARED_LIBRARIES := $(btrfs_shared_libraries)
-#LOCAL_LDLIBS := $(LIBBTRFS_LIBS)
-#LOCAL_LDFLAGS := $(STATIC_LDFLAGS)
 LOCAL_SHARED_LIBRARIES := $(btrfs_shared_libraries)
 LOCAL_STATIC_LIBRARIES := libbtrfs liblzo-static
 LOCAL_SYSTEM_SHARED_LIBRARIES := libc libcutils
